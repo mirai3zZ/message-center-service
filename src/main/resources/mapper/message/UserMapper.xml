@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.yangyang.cloud.message.mapper.UserMapper">
+    <select id="getCreatedUserId" resultType="com.yangyang.cloud.message.vo.UserMsgCreatedUserIdVo">
+        select created_user_id,id from user_message_receiver where is_user_self = 'Y' and status='Y'
+    </select>
+
+    <select id="getMsgReceiverSettingId" parameterType="String" resultType="java.lang.String">
+        select id from user_message_receiver_setting where created_user_id = #{createdUserId} and receiver_id = 0
+    </select>
+
+    <update id="updateUserMsgReceiverSetting" parameterType="String" >
+        update user_message_receiver_setting
+        <set>
+            receiver_id = #{receiverId}
+        </set>
+        where id = #{id}
+    </update>
+
+    <update id="updateReceiverCreatedTime" parameterType="String" >
+        update user_message_receiver
+        <set>
+            created_time = #{createdTime}
+        </set>
+        where id = #{receiverId}
+    </update>
+
+    <select id="getAllCreatedUserId" resultType="java.lang.String">
+        select created_user_id from user_message_receiver where status='Y' group by created_user_id
+    </select>
+</mapper>

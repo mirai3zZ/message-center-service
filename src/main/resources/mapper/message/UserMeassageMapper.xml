@@ -1,0 +1,425 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.yangyang.cloud.message.mapper.UserMessageMapper">
+    <sql id="table_name">
+      user_message_setting
+    </sql>
+    <select id="getUserMessageSetting" parameterType="String"
+            resultType="com.yangyang.cloud.message.bean.UserMessageSettingEntity">
+        SELECT umess.id,umess.created_time,umess.updated_time,umess.created_user_id,type.id as message_type_id,type.type_name as message_type_name,umess.main_type_id,
+        umess.main_type_name,umess.send_mail_setting,umess.send_email_setting,umess.send_mobile_setting,umess.can_edit,umess.status,type.explain_option,type.explain_text
+        FROM  user_message_setting umess INNER JOIN operation_message_type type
+        on umess.message_type_id = type.id
+        where umess.created_user_id = #{userId} and umess.status='Y'and type.using_object_type='customer'
+    </select>
+
+    <update id="editUserMessageSetting" parameterType="java.util.List">
+        <foreach collection="list" item="item" index="index" separator=";" open="" close="">
+            update user_message_setting
+            <set>
+                send_mail_setting=#{item.sendMailSetting},
+                send_email_setting=#{item.sendEmailSetting},
+                send_mobile_setting=#{item.sendMobileSetting},
+                can_edit=#{item.canEdit},
+                updated_time=#{item.updatedTime}
+            </set>
+            where id=#{item.id} and status = 'Y'
+        </foreach>
+    </update>
+    <insert id="addUserMessageSetting" parameterType="java.util.List">
+        <selectKey resultType="java.lang.Integer" keyProperty="id"
+                   order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into user_message_setting(id,created_time,created_user_id,updated_time,
+        message_type_id,message_type_name,main_type_id,main_type_name,send_mail_setting,
+        send_mobile_setting,send_email_setting,can_edit,status)
+        values
+        <foreach collection="list" item="item" index="index" separator="," open="" close="">
+            (
+            #{item.id},#{item.createdTime},#{item.createdUserId},#{item.updatedTime},
+            #{item.messageTypeId},#{item.messageTypeName},#{item.mainTypeId},#{item.mainTypeName},
+            #{item.sendMailSetting},#{item.sendMobileSetting},#{item.sendEmailSetting},#{item.canEdit},#{item.status}
+            )
+        </foreach>
+    </insert>
+    <select id="getMessageReceiver"
+            resultType="com.yangyang.cloud.message.bean.UserMessageReceiverSettingEntity">
+        SELECT a.id,a.created_time,a.updated_time,a.created_user_id,a.updated_user_id,a.message_setting_id,a.receiver_id,a.status
+        FROM  user_message_receiver_setting a left join user_message_receiver b on a.receiver_id=b.id
+        where a.message_setting_id = #{messageId} and b.is_user_self='Y' and a.status ='Y'
+    </select>
+
+    <select id="getAllMessageReceiver"
+            resultType="com.yangyang.cloud.message.bean.UserMessageReceiverSettingEntity">
+        SELECT id,created_time,updated_time,created_user_id,updated_user_id,message_setting_id,receiver_id,status
+        FROM  user_message_receiver_setting
+        where message_setting_id = #{messageId} and receiver_id=#{receiverId}
+    </select>
+    <insert id="addMessageReceiverSetting" parameterType="java.util.List">
+        <!--<selectKey resultType="java.lang.Integer" keyProperty="id"-->
+                   <!--order="AFTER">-->
+            <!--SELECT LAST_INSERT_ID()-->
+        <!--</selectKey>-->
+        insert into user_message_receiver_setting(id,created_time,created_user_id,updated_time,
+        updated_user_id,message_setting_id,receiver_id,status)
+        values
+        <foreach collection="list" item="item" index="index" separator="," open="" close="">
+            (
+            #{item.id},#{item.createdTime},#{item.createdUserId},#{item.updatedTime},
+            #{item.updatedUserId},#{item.messageSettingId},#{item.receiverId},#{item.status}
+            )
+        </foreach>
+    </insert>
+    <select id="getUserReceiver"
+            resultType="com.yangyang.cloud.message.bean.UserMessageReceiverEntity">
+        SELECT *
+        FROM  user_message_receiver
+        where id=#{id}
+    </select>
+    <select id="getDefaultMessageSetting"
+            resultType="com.yangyang.cloud.message.bean.OperationMessageTypeEntity">
+        SELECT id,created_time,created_user_id,created_user_name,updated_time,updated_user_id,updated_user_name,type_name,
+        type_level,send_mail_default_setting,send_mobile_default_setting,status,parent_id,send_email_default_setting,parent_name,
+        using_object_type,can_edit
+        FROM  operation_message_type
+        where status='Y' and using_object_type='customer' and type_level=1
+    </select>
+    <insert id="addVerifityMessage" parameterType="com.yangyang.cloud.message.bean.CommonUserMessageEntity">
+        INSERT INTO common_user_message(id, content, created_time, mobile, email, sent_user_id, send_error_times,
+        send_time,subject,type,status,sms_failed_reason)
+        VALUES (#{id}, #{content},#{createdTime},#{mobile},#{email},#{sentUserId},0,#{sendTime},#{subject},#{type},#{status},#{smsFailedReason})
+    </insert>
+
+
+    <select id="queryAllMessageForPage" parameterType="String"
+            resultType="com.yangyang.cloud.message.bean.OperationMessageEntity">
+        SELECT
+    mess.id,mess.send_user_id,mess.send_user_name,mess.created_time,mess.updated_time,mess.updated_user_id,mess.title,
+mess.content,mess.message_template_type,mess.status,mess.istag,mess.receiver_id,mess.read_time,mess.read_status,mess.message_main_type,mess.message_main_name,type.id as message_type,type.type_name as message_type_name,mess.delete_flag,
+mess.receiver_contact,type.using_object_type
+		FROM
+		operation_user_message mess LEFT JOIN operation_message_type type
+        on mess.message_type=type.id
+		WHERE
+	    message_template_type = 'mail'
+        AND delete_flag = 'N'
+        and receiver_id =#{userId}
+        <if test="messageMainType != ''">
+            and message_main_type = #{messageMainType} and type.status='Y' and
+            EXISTS (SELECT 1 FROM operation_message_type t1 WHERE t1.parent_id = mess.message_main_type
+            AND t1.type_level = 0
+            AND  t1.status='Y' )
+        </if>
+        <if test="messageMainType ==''">
+            and type.status='Y'
+        </if>
+        <if test="isOther">
+            AND NOT EXISTS (SELECT 1 FROM operation_message_type t1 WHERE t1.parent_id = mess.message_main_type
+            AND t1.type_level > 0
+            AND  t1.using_object_type = 'customer' )
+        </if>
+        <if test="isUnread">
+            and read_status = 'N'
+        </if>
+	    order by created_time desc
+    </select>
+
+    <select id="getReceiversByCreateUserId" parameterType="String"
+            resultType="com.yangyang.cloud.message.bean.UserMessageReceiverInfoEntity">
+        SELECT
+        id,receiver_name,receiver_email,receiver_mobile,receiver_job,email_check_pass,mobile_check_pass,is_user_self
+		FROM user_message_receiver
+		WHERE
+		status = 'Y' and created_user_id=#{createdUserId} ORDER BY created_time ASC
+    </select>
+
+    <select id="getReceiverCount" parameterType="String" resultType="java.lang.Integer">
+        select count(*) from user_message_receiver where created_user_id=#{userId} and status = 'Y'
+    </select>
+
+    <insert id="addMessageReceiver" parameterType="com.yangyang.cloud.message.bean.UserMessageReceiverEntity">
+        INSERT INTO user_message_receiver(id, created_time, updated_time, created_user_id, created_user_name, receiver_name, receiver_email,
+        receiver_mobile,receiver_job,email_check_pass,mobile_check_pass,status,is_user_self)
+        VALUES (#{id}, #{createdTime}, #{updatedTime}, #{createdUserId}, #{createdUserName}, #{receiverName}, #{receiverEmail},#{receiverMobile},
+        #{receiverJob},#{emailCheckPass}, #{mobileCheckPass}, #{status},#{isUserSelf} )
+    </insert>
+    <insert id="addMessageReceiverM" parameterType="com.yangyang.cloud.message.vo.UserMessageAddVo">
+        INSERT INTO user_message_receiver(id, created_time, updated_time, created_user_id, created_user_name, receiver_name, receiver_email,
+        receiver_mobile,receiver_job,email_check_pass,mobile_check_pass,status,is_user_self)
+        VALUES (#{id}, #{createdTime}, #{updatedTime}, #{createdUserId}, #{createdUserName}, #{receiverName}, #{receiverEmail},#{receiverMobile},
+        #{receiverJob},#{emailCheckPass}, #{mobileCheckPass}, #{status}, #{isUserSelf})
+    </insert>
+    <update id="updateMessageReceiver" parameterType="com.yangyang.cloud.message.bean.UserMessageReceiverEntity">
+        UPDATE user_message_receiver SET
+        <if test="updatedTime != null">
+            updated_time=#{updatedTime},
+        </if>
+        <if test="receiverName != null and receiverName != ''">
+            receiver_name= #{receiverName},
+        </if>
+        <if test="receiverEmail != null and receiverEmail != ''">
+            receiver_email=#{receiverEmail},
+        </if>
+        <if test="receiverMobile != null and receiverMobile != ''">
+            receiver_mobile=#{receiverMobile},
+        </if>
+        <if test="emailCheckPass != null and emailCheckPass != ''">
+            email_check_pass=#{emailCheckPass},
+        </if>
+        <if test="mobileCheckPass != null and mobileCheckPass != ''">
+            mobile_check_pass=#{mobileCheckPass},
+        </if>
+        <if test="isUserSelf != null and isUserSelf != ''">
+            is_user_self=#{isUserSelf} ,
+        </if>
+        receiver_job=#{receiverJob}
+        where id=#{id} and created_user_id = #{createdUserId}
+    </update>
+    <update id="removeMessageReceiver" parameterType="string">
+        UPDATE user_message_receiver SET status='N'
+        WHERE id=#{id} and created_user_id=#{userId}
+    </update>
+    <update id="removeMessageReceiverSetting" parameterType="string">
+        UPDATE user_message_receiver_setting SET status='N',updated_time=now()
+        WHERE receiver_id=#{receiverId} and created_user_id=#{userId}
+    </update>
+    <update id="updateMessageReceiverSetting" parameterType="java.util.List">
+        <foreach collection="list" item="item" index="index" separator=";" open="" close="">
+            update user_message_receiver_setting
+            <set>
+                status=#{item.status},
+                <if test="item.updatedUserId != null and item.updatedUserId !=''">
+                    `updated_user_id` = #{item.updatedUserId},
+                </if>
+                <if test="item.updatedTime != null">
+                    updated_time = #{item.updatedTime},
+                </if>
+            </set>
+            where receiver_id=#{item.receiverId} and message_setting_id = #{item.messageSettingId}
+            <if test="item.createdUserId !=null and item.createdUserId!=''">
+                and created_user_id = #{item.createdUserId}
+            </if>
+        </foreach>
+    </update>
+    <select id="getMessageReceiverInfo" parameterType="String"
+            resultType="com.yangyang.cloud.message.bean.UserMessageReceiverInfoEntity">
+        SELECT
+        a.receiver_id as id,IFNULL(b.receiver_name,'账号联系人') receiver_name
+        FROM
+        user_message_receiver_setting a
+        LEFT JOIN user_message_receiver b ON a.receiver_id = b.id
+        where  a.message_setting_id=#{messageSettingId} and a.created_user_id=#{userId} and a.status='Y'
+    </select>
+
+    <update id="deleteMessage">
+        update operation_user_message
+        <set>
+            updated_time = #{message.updatedTime},
+            <if test="message.deleteFlag != null and message.deleteFlag != ''">
+                delete_flag = #{message.deleteFlag},
+            </if>
+            <if test="message.readStatus != null and message.readStatus != ''">
+               read_status = #{message.readStatus},
+            </if>
+            <if test="message.readTime!='' and message.readTime!=null">
+               read_time = #{message.readTime},
+            </if>
+            updated_user_id = #{message.updatedUserId}
+        </set>
+        where receiver_id = #{message.receiverId}
+        <if test="message.deleteFlag == null or message.deleteFlag == ''">
+                and delete_flag = 'N'
+        </if>
+        and id in
+        <foreach collection="ids" close=")" open="(" separator="," item="id">
+            #{id}
+        </foreach>
+    </update>
+    <select id="getUserMeaasegeSettingIdByMainId" resultType="java.math.BigInteger">
+        select id from user_message_setting where main_type_id in
+        <foreach collection="arr" item="ids" separator="," open="(" close=")" >
+            #{ids}
+        </foreach>
+        and created_user_id = #{userId}
+    </select>
+    <select id="getUserMessageSettingByMainId" resultType="com.yangyang.cloud.message.bean.UserMessageSettingEntity">
+        select umess.id,umess.message_type_id,umess.message_type_name,umess.main_type_id,umess.main_type_name,umess.send_mail_setting,
+        umess.send_mobile_setting,umess.send_email_setting,umess.can_edit,type.explain_option,type.explain_text
+        FROM  user_message_setting umess INNER JOIN operation_message_type type
+        on umess.message_type_id = type.id
+        where umess.main_type_id=#{mainTypeId} and umess.status='Y' and umess.created_user_id=#{userId} and type.using_object_type='customer'
+    </select>
+    <select id="isHasReceiver" resultType="java.lang.String">
+        select status
+        from user_message_receiver_setting
+        where created_user_id = #{userId} and message_setting_id = #{settingId} and receiver_id = #{receiverId}
+    </select>
+    <select id="getCanEditById" resultType="java.lang.String">
+        select can_edit from user_message_setting where id = #{id} and status = 'Y'
+    </select>
+    <select id="getReceiverEmialAndMobileById" resultType="com.yangyang.cloud.message.bean.UserMessageReceiverEntity">
+        SELECT receiver_email,receiver_mobile FROM user_message_receiver where id = #{id} and created_user_id = #{userId}
+    </select>
+    <select id="getCurrentReceiverMessageSetting" parameterType="String" resultType="com.yangyang.cloud.message.bean.UserMessageSettingEntity">
+        SELECT a.message_setting_id, b.message_type_name, b.main_type_name, b.main_type_id, b.message_type_id FROM user_message_receiver_setting a INNER JOIN user_message_setting b ON a.message_setting_id = b.id WHERE
+        (a.message_setting_id IN ( SELECT message_setting_id FROM user_message_receiver_setting WHERE (created_user_id = #{userId} AND STATUS = 'Y' AND receiver_id = #{receiverId}) ) AND a.created_user_id = #{userId} AND a.STATUS = 'Y') GROUP BY a.message_setting_id HAVING COUNT(a.id) = 1
+    </select>
+    <select id="getMessageIdsByReceiverId" resultType="java.lang.String">
+        select id from operation_user_message where receiver_id = #{userId} and delete_flag = 'N' and read_status = 'N'
+    </select>
+    <select id="getUserMessageReceiverSettingEntity" resultType="com.yangyang.cloud.message.bean.UserMessageReceiverSettingEntity">
+         SELECT id,created_time,updated_time,created_user_id,updated_user_id,message_setting_id,receiver_id,status
+         FROM user_message_receiver_setting
+         WHERE created_user_id = #{createdUserId}
+         AND message_setting_id = #{messageSettingId}
+         AND status='y'
+    </select>
+
+    <insert id="addMessageReceiverSelf" parameterType="com.yangyang.cloud.message.bean.UserMessageReceiverEntity">
+          insert into user_message_receiver(id, created_time, updated_time, created_user_id, created_user_name, receiver_name, receiver_email,
+        receiver_mobile,receiver_job,email_check_pass,mobile_check_pass,status,is_user_self)
+        VALUES (#{id}, #{createdTime}, #{updatedTime}, #{createdUserId}, #{createdUserName}, #{receiverName}, #{receiverEmail},#{receiverMobile},
+        #{receiverJob},#{emailCheckPass}, #{mobileCheckPass}, #{status}, #{isUserSelf})
+    </insert>
+
+    <select id="getMessageReceiverSelf" parameterType="String" resultType="java.lang.Integer">
+        select count(1) from user_message_receiver where created_user_id = #{id} and is_user_self = 'Y'
+    </select>
+
+    <select id="getMsgSettingId"  resultType="java.math.BigInteger">
+        select id from user_message_setting where created_user_id = #{createdUserId} and message_type_id = #{messageTypeId}
+    </select>
+
+    <select id="getCountByMsgSettingId"  resultType="java.lang.Integer">
+        select count(*) from user_message_receiver_setting where message_setting_id = #{messageSettingId} and receiver_id = #{receiverId}
+    </select>
+
+    <update id="updateMsgReceiverSettingByType"  >
+
+        update user_message_setting
+        <set>
+            send_mail_setting=#{sendMailSetting},
+            send_email_setting=#{sendEmailSetting},
+            send_mobile_setting=#{sendMobileSetting},
+            updated_time=#{updatedTime}
+        </set>
+        where
+        <if test="messageTypeId!='' and messageTypeId!=null">
+            message_type_id = #{messageTypeId} and
+        </if>
+        <if test="mainTypeId!='' and mainTypeId!=null">
+            main_type_id = #{mainTypeId} and
+        </if>
+         status = 'Y' and created_user_id = #{createdUserId}
+
+    </update>
+
+    <select id="getTypeLevelById" parameterType="java.math.BigInteger" resultType="java.lang.Integer">
+        select type_level from operation_message_type where id = #{messageId}
+    </select>
+
+    <select id="getMessageReceiverId" parameterType="java.math.BigInteger" resultType="java.math.BigInteger">
+        select id from user_message_receiver where id = #{id}
+    </select>
+
+    <select id="getMessageTypesCount" resultType="com.yangyang.cloud.message.bean.OperationMessageTypeEntity">
+        select type_name,id,status from operation_message_type where  type_level='0'
+    </select>
+
+    <select id="getMessageCount"  resultType="java.lang.Integer">
+        select count(1) from operation_user_message where receiver_id = #{receiverId} and message_type = #{messageTypeId} and read_status = 'N'
+        and message_template_type='mail' and delete_flag='N'
+    </select>
+
+    <select id="getChildMessageTypeId" parameterType="java.math.BigInteger" resultType="java.math.BigInteger">
+        select id from operation_message_type where parent_id=#{id}  and type_level=1 and status='Y'
+    </select>
+
+    <select id="getInnerChildMessageTypeId" parameterType="java.math.BigInteger" resultType="java.math.BigInteger">
+        select id from operation_message_type where parent_id=#{id}
+        and ((using_object_type ="inner" and status='Y') or (using_object_type !="inner" and status='N') or
+        (using_object_type ="inner" and status='N'))
+        and type_level=1
+    </select>
+
+    <select id="getUserAllMainTypeId" parameterType="java.lang.String" resultType="java.math.BigInteger">
+        select main_type_id  from user_message_setting
+        WHERE created_user_id=#{userId}  and `status`='Y' GROUP BY main_type_id
+    </select>
+    <select id="getUserSelfNumber" resultType="java.lang.String">
+        select id from user_message_receiver where created_user_id=#{userId} and is_user_self = 'Y'
+    </select>
+
+    <select id="getInvalidChildMessageTypeId" resultType="java.math.BigInteger">
+          select id from operation_message_type where parent_id=#{id}  and type_level=1
+    </select>
+
+    <select id="getInvalidChildIds" resultType="java.math.BigInteger">
+        select id from operation_message_type where parent_id=#{id}  and type_level=1 and status='N'
+    </select>
+
+    <select id="queryOtherMessageForPage"
+            resultType="com.yangyang.cloud.message.bean.OperationMessageEntity">
+        SELECT
+        mess.id,mess.send_user_id,mess.send_user_name,mess.created_time,mess.updated_time,mess.updated_user_id,mess.title,
+        mess.content,mess.message_template_type,mess.status,mess.istag,mess.receiver_id,mess.read_time,mess.read_status,mess.message_main_type,mess.message_main_name,type.id as message_type,type.type_name as message_type_name,mess.delete_flag,
+        mess.receiver_contact,type.using_object_type
+        FROM
+        operation_user_message mess LEFT JOIN operation_message_type type
+        on mess.message_type=type.id
+        WHERE
+        message_template_type = 'mail'
+        AND delete_flag = 'N'
+        and receiver_id =#{userId}
+        <if test="isOther">
+            AND type.status='N'
+        </if>
+        <if test="isUnread">
+            and read_status = 'N'
+        </if>
+        order by created_time desc
+    </select>
+
+    <select id="getMessageReceiverSelfById" parameterType="java.lang.String"
+            resultType="com.yangyang.cloud.message.bean.UserMessageReceiverInfoEntity">
+        select id , receiver_name from user_message_receiver where created_user_id = #{userId} and is_user_self = 'Y'
+    </select>
+
+    <select id="getMessageReceiverInfoById"
+            resultType="com.yangyang.cloud.message.bean.UserMessageReceiverInfoEntity">
+         SELECT
+        b.id as id,b.receiver_name as receiver_name
+        FROM
+        user_message_receiver_setting a
+        LEFT JOIN user_message_receiver b ON a.receiver_id = b.id
+        where  a.message_setting_id=#{messageSettingId} and b.created_user_id=#{userId} and a.status='Y'
+    </select>
+
+    <select id="getReceiversByName" parameterType="java.lang.String"
+            resultType="com.yangyang.cloud.message.bean.UserMessageReceiverInfoEntity">
+        SELECT
+        id,receiver_name,receiver_email,receiver_mobile,receiver_job,email_check_pass,mobile_check_pass,is_user_self
+		FROM user_message_receiver
+		WHERE
+		status = 'Y'
+		 <if test="receiverName!=null and receiverName!=''">
+             and receiver_name like concat('%', #{receiverName}, '%')
+         </if>
+		 and created_user_id=#{userId} ORDER BY created_time ASC
+    </select>
+
+    <update id="updateUserMsgSettingById" parameterType="java.math.BigInteger">
+        update user_message_setting
+        <set>
+            send_mail_setting=#{settingVo.sendMailSetting},
+            send_email_setting=#{settingVo.sendEmailSetting},
+            send_mobile_setting=#{settingVo.sendMobileSetting},
+            updated_time=#{updatedTime}
+        </set>
+        where
+        status = 'Y' and id = #{settingVo.messageId}
+    </update>
+</mapper>

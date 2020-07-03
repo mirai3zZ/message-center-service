@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yangyang.cloud.messagemanage.mapper.MessageHandMapper">
+
+    <sql id="base_data">
+    id,created_time,message_main_name,message_type_name,send_target,receiver_id,send_email_message,send_mail_message
+,send_sms_message,sms_content,mail_title,mail_content,email_content,email_subject
+
+    </sql>
+
+    <sql id="base_query">
+        where send_by_hand='Y'
+
+        <if test="notice.searchWord!=null and ''!=notice.searchWord">
+            and ( mail_content like '%${notice.searchWord}%'  or sms_content like '%${notice.searchWord}%' or receiver_id  like '%${notice.searchWord}%')
+        </if>
+        <if test="notice.startTime!=null and notice.startTime!=''">
+            and date_format(created_time, '%Y-%m-%d %T') <![CDATA[>= ]]> #{notice.startTime}
+        </if>
+        <if test="notice.endTime!=null and notice.endTime!=''">
+            and date_format(created_time, '%Y-%m-%d %T') <![CDATA[<= ]]> #{notice.endTime}
+        </if>
+        <if test="notice.mainTypeId!=null and notice.mainTypeId!=''and notice.mainTypeId!='all'">
+            and message_main_type = #{notice.mainTypeId}
+        </if>
+        <if test="notice.messagetypeId!=null and notice.messagetypeId!='' and notice.messagetypeId!='all'">
+            and message_type = #{notice.messagetypeId}
+        </if>
+        <if test="notice.messageId != null and notice.messageId != 0">
+            and id = #{notice.messageId}
+        </if>
+    </sql>
+
+    <select id="getMessageHandListForPage" parameterType="java.util.Map"
+            resultType="com.yangyang.cloud.messagemanage.vo.MessageHandBaseVo">
+        select distinct <include refid="base_data"></include> from operation_message_list
+        <include refid="base_query"></include> ORDER BY created_time desc
+    </select>
+
+    <select id="getReceiverByMessageId" resultType="String">
+        SELECT receiver FROM operation_user_message WHERE message_id = #{messageId} and delete_flag = 'N'
+    </select>
+
+</mapper>

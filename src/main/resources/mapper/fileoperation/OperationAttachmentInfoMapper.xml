@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.yangyang.cloud.fileoperation.mapper.OperationAttachmentInfoMapper">
+    <sql id="Base_Column_List">
+   id, module_code, module_id, original_name, file_name, file_suffix, fule_url, file_size,
+    created_user_id, created_user_name, created_time
+    </sql>
+
+
+    <select id="selectAll" parameterType="com.yangyang.cloud.fileoperation.bean.OperationAttachmentInfo"
+            resultType="com.yangyang.cloud.fileoperation.bean.OperationAttachmentInfo">
+        select
+        <include refid="Base_Column_List"/>
+        from operation_attachment_info
+        <where>
+            <if test="moduleId != null ">
+                module_id = #{moduleId}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectAllFileBean" parameterType="com.yangyang.cloud.fileoperation.bean.OperationAttachmentInfo"
+            resultType="com.yangyang.cloud.fileoperation.bean.FileBean">
+        select id,module_id, original_name as name, fule_url as url, file_size size, file_attribute
+		from operation_attachment_info
+        <where>
+            <if test="moduleId != null and moduleId != ''">
+                AND module_id = #{moduleId}
+            </if>
+            <if test="moduleCode != null and moduleCode != ''">
+                AND module_code = #{moduleCode}
+            </if>
+        </where>
+    </select>
+
+    <insert id="saveOperationAttachment"
+            parameterType="com.yangyang.cloud.fileoperation.bean.OperationAttachmentInfo">
+        insert into operation_attachment_info
+        (id,module_code,module_id,original_name,file_name,file_suffix,fule_url,file_size,created_user_id,created_user_name,created_time,file_attribute,file_attribute2)
+        values
+        (#{id}, #{moduleCode}, #{moduleId}, #{originalName}, #{fileName}, #{fileSuffix},
+        #{fuleUrl},#{fileSize},#{createdUserId},#{createdUserName},#{createdTime},#{fileAttribute},#{fileAttribute2})
+    </insert>
+
+    <update id="update" parameterType="com.yangyang.cloud.fileoperation.bean.OperationAttachmentInfo">
+        update operation_attachment_info
+        <set>
+            <if test="moduleCode != null">
+                module_code = #{moduleCode,jdbcType=VARCHAR},
+            </if>
+            <if test="moduleId != null">
+                module_id = #{moduleId,jdbcType=VARCHAR},
+            </if>
+            <if test="originalName != null">
+                original_name = #{originalName,jdbcType=VARCHAR},
+            </if>
+            <if test="fileName != null">
+                file_name = #{fileName,jdbcType=VARCHAR},
+            </if>
+            <if test="fileSuffix != null">
+                file_suffix = #{fileSuffix,jdbcType=VARCHAR},
+            </if>
+            <if test="fuleUrl != null">
+                fule_url = #{fuleUrl,jdbcType=VARCHAR},
+            </if>
+            <if test="fileSize != null">
+                file_size = #{fileSize,jdbcType=INTEGER},
+            </if>
+            <if test="createdUserId != null">
+                created_user_id = #{createdUserId,jdbcType=VARCHAR},
+            </if>
+            <if test="createdUserName != null">
+                created_user_name = #{createdUserName,jdbcType=VARCHAR},
+            </if>
+            <if test="createdTime != null">
+                created_time = #{createdTime,jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+    <update id="updateAttachmentList" >
+        update operation_attachment_info
+        <set>
+            <if test="moduleId != null">
+                module_id = #{moduleId,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id  in
+        <foreach collection="attachmentIds" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+
+    </update>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.math.BigInteger">
+        delete from operation_attachment_info
+        where id = #{id}
+  </delete>
+    <delete id="delectFileByModuleId" parameterType="java.lang.String">
+        delete from operation_attachment_info
+        where module_id = #{moduleId}
+  </delete>
+
+    <delete id="deleteByFileUrl" parameterType="java.lang.String">
+        delete from operation_attachment_info
+        where fule_url = #{fileUrl} and  module_code = 'beian_templet_attachment'
+  </delete>
+    <select id="getAttachmentByUrl" parameterType="java.lang.String" resultType="java.lang.Integer">
+        select count(1) from beian_attachment_info_finish where module_code='beian_templet_attachment' and fule_url=#{realurl}
+    </select>
+  <delete id="deleteByFileAttribute" parameterType="java.util.Map">
+       delete from operation_attachment_info
+        where  module_code = 'beian_templet_attachment' and module_id = #{id} and file_attribute in
+      <foreach item="item" index="index" collection="list" open="(" separator="," close=")">
+      #{item}
+      </foreach>
+  </delete>
+
+</mapper>

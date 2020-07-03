@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: org.keycloak:spring-boot-container-bundle:4.6.0.Final">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.keycloak/spring-boot-container-bundle/4.6.0.Final/6be2cc8be849c418822cafb1b49fc3cc9c80e641/spring-boot-container-bundle-4.6.0.Final.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.keycloak/spring-boot-container-bundle/4.6.0.Final/52b58b8dca8d55de7e023fa645155903989c06bc/spring-boot-container-bundle-4.6.0.Final-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

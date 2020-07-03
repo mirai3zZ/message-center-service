@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.yangyang.cloud.message.mapper.OperationMessageTypeMapper">
+	<select id="getList" resultType="com.yangyang.cloud.message.bean.OperationMessageTypeEntity">
+		SELECT t.id, t.created_time, t.created_user_id, t.created_user_name, t.updated_time, t.updated_user_id,
+				t.updated_user_name, t.type_name, t.type_level, t.send_mail_default_setting,
+				t.send_mobile_default_setting, t.status, t.parent_id, t.send_email_default_setting,
+				t.parent_name, t.using_object_type, t.can_edit
+			FROM operation_message_type t
+			WHERE t.status="Y"
+				AND t.type_level=0
+	</select>
+	<!-- TODO exists 需要增加 status ="y"的过滤条件-->
+	<select id="getIdAndNames" resultType="com.yangyang.cloud.message.vo.MessageTypeListVO">
+		SELECT t.id, t.type_name
+			FROM operation_message_type t
+			WHERE t.status="Y"
+				AND t.type_level=0
+				AND EXISTS (select 1 from operation_message_type t1 WHERE t1.parent_id = t.id and t1.type_level>0 and t1.using_object_type='customer')
+	</select>
+	
+	<select id="getById" resultType="com.yangyang.cloud.message.bean.OperationMessageTypeEntity">
+		select *
+			from operation_message_type
+			where id=#{id}
+				and type_level=#{typeLevel}
+				<if test="status != null or status != ''">
+					and status=#{status}
+				</if>
+	</select>
+	
+	<select id="getByName" resultType="String">
+		select type_name
+			from operation_message_type
+			where type_name=#{typeName} and status='Y' and type_level=1
+			<if test="id != null and id != ''">
+				and id != #{id}
+			</if>
+	</select>
+	<select id="getByCode" resultType="String">
+		select type_code
+		from operation_message_template
+		where type_code=#{typeCode} and status='Y'
+		<if test="id != null and id != ''">
+			and message_type_id != #{id}
+		</if>
+	</select>
+	<select id="getByMainTypeName" resultType="String">
+		select type_name
+			from operation_message_type
+			where type_name=#{mainTypeName} and status='Y' and type_level=0
+		<if test="id != null and id != ''">
+			and id != #{id}
+		</if>
+	</select>
+	<insert id="add" parameterType="com.yangyang.cloud.message.bean.OperationMessageTypeEntity">
+        insert into operation_message_type (id, created_time, created_user_id, created_user_name, updated_time, updated_user_id,
+        		updated_user_name, type_name, type_level, parent_id, send_mail_default_setting, send_mobile_default_setting,
+				status, send_email_default_setting, parent_name, using_object_type, can_edit)
+        	values (#{id}, now(), #{createdUserId}, #{createdUserName}, now(), #{updatedUserId},
+					#{updatedUserName}, #{typeName}, #{typeLevel}, #{parentId}, #{sendMailDefaultSetting}, #{sendMobileDefaultSetting},
+					#{status}, #{sendEmailDefaultSetting}, #{parentName}, #{usingObjectType}, #{canEdit})
+    </insert>
+	<update id="updateMessageTypeName">
+		update operation_message_type set
+		type_name = #{typeName},
+		updated_user_id = #{updatedUserId},
+		updated_time = #{updatedTime},
+		updated_user_name = #{updatedUserName}
+		where id = #{id}
+	</update>
+	<update id="updateMessageTypeParentName">
+		update operation_message_type set
+		parent_name = #{typeName},
+		updated_user_id = #{updatedUserId},
+		updated_time = #{updatedTime},
+		updated_user_name = #{updatedUserName}
+		where parent_id = #{id} and id != #{id}
+	</update>
+
+	<select id="getOperationMessageTypeEntityById" resultType="com.yangyang.cloud.message.bean.OperationMessageTypeEntity">
+		select t.id,  t.created_user_id,  t.type_name, t.type_level, t.send_mail_default_setting,
+				t.send_mobile_default_setting, t.status, t.parent_id, t.send_email_default_setting,
+				t.parent_name,  t.can_edit
+		from operation_message_type t
+		where t.id=#{messageTypeId}  and t.status='Y'
+	</select>
+	
+	<select id="getChildMessageByParentId" resultType="com.yangyang.cloud.message.bean.OperationMessageTypeEntity">
+		select t.id,  t.created_user_id,  t.type_name, t.type_level, t.send_mail_default_setting,
+	t.send_mobile_default_setting, t.status, t.parent_id, t.send_email_default_setting,
+	t.parent_name,  t.can_edit from operation_message_type t where t.parent_id = #{parentId} and t.status='Y' and t.type_level=1
+	</select>
+</mapper>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.yangyang.cloud.notice.mapper.NoticeMapper">
+    
+    <sql id="queryTitleColumns">
+        id,notice_title,created_time,notice_content,notice_type_name,send_time
+    </sql>
+    <sql id="queryDetailColumns">
+        id,notice_title,notice_content,created_time,notice_type_name,send_time
+    </sql>
+    <select id="getNoticeBeansForPage" resultType="com.yangyang.cloud.notice.bean.NoticeBean">
+        select <include refid="queryTitleColumns"/>
+        from operation_notice where status = 'released'
+        <choose>
+            <when test="type!='all'">
+                and notice_type_id=#{type}
+            </when>
+            <otherwise>
+                <if test="exclusiveTypes!=''and null!=exclusiveTypes">
+                    and notice_type_id not in
+                    <foreach item="item" index="index" collection="exclusiveTypes"
+                             open="(" separator="," close=")">
+                        #{item}
+                    </foreach>
+                </if>
+            </otherwise>
+        </choose>
+          order by created_time DESC
+    </select>
+
+    <select id="getNoticeBeanById" parameterType="String" resultType="com.yangyang.cloud.notice.bean.NoticeBean">
+        select <include refid="queryDetailColumns"/>
+        from operation_notice
+        where id = #{id}
+    </select>
+
+</mapper>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yangyang.cloud.messagemanage.mapper.OperationMessageType">
+
+    <select id="messageSettingShow" resultType="com.yangyang.cloud.message.vo.OperationMessageTypeVo">
+        select id,
+        type_name as typeName,
+        send_mail_default_setting as defaultMailSetting,
+        send_email_default_setting as defaultEmailSetting,
+        send_mobile_default_setting as defaultSmsSetting,
+        can_edit as canEdit,
+        parent_id as parentId,
+        type_level as typeLevel
+        from operation_message_type where status = 'Y'
+    </select>
+    <update id="updateMessageSetting" parameterType="java.util.List">
+        <foreach collection="list" index="index" item="item" open="" close="" separator=";">
+            update operation_message_type
+            <set>
+                send_mail_default_setting = #{item.switchMail},
+                send_email_default_setting = #{item.switchEmail},
+                send_mobile_default_setting = #{item.switchMobile},
+                can_edit = #{item.canEdit},
+                updated_user_id=#{item.updateUserId},
+                updated_user_name=#{item.updatedUserName},
+                updated_time=#{item.updatedTime}
+            </set>
+            where id = #{item.id}
+        </foreach>
+    </update>
+    <update id="deleteMessageType">
+        UPDATE operation_message_type
+        LEFT JOIN operation_message_template ON operation_message_template.message_type_id = operation_message_type.`id`
+        LEFT JOIN user_message_setting ON user_message_setting.`message_type_id` = operation_message_type.`id`
+        SET operation_message_type.`status` = 'N', user_message_setting.status
+        ='N',operation_message_template.`status`='N'
+        WHERE operation_message_type.`id`=#{id}
+    </update>
+    <select id="getNotYMessageType" resultType="java.lang.Integer">
+        SELECT COUNT(1) FROM operation_message_type WHERE parent_id =#{id} AND `status`='Y' AND type_level !=0
+    </select>
+    <update id="updateMessageType">
+        update operation_message_type set `status`='N' where id = #{id}
+    </update>
+    <update id="updateUserSettingByTypeId" parameterType="java.util.List">
+            <foreach collection="list" index="index" item="item" open="" close="" separator=";">
+                update user_message_setting
+                <set>
+                    send_mail_setting = #{item.switchMail},
+                    send_email_setting = #{item.switchEmail},
+                    send_mobile_setting = #{item.switchMobile},
+                    can_edit = #{item.canEdit},
+                    updated_time=#{item.updatedTime}
+                </set>
+                where message_type_id = #{item.id}
+            </foreach>
+    </update>
+</mapper>

@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.yangyang.cloud.common.dictionary.mapper.CommonDictItemMapper">
+
+	<!--表字段-->
+    <sql id="Base_Column_List" >
+    	id,
+    	item_id, group_id,
+    	value, region_code,
+    	az_code, description,
+    	sort,
+    	enabled,
+    	created_time,
+    	updated_time
+  	</sql>
+
+	<!--查询数据字典返回列，视图-->
+	<sql id="Base_Column_List_Vo" >
+		id id,
+    	item_id code,
+    	value name
+  	</sql>
+
+	<!-- 查询条件 -->
+	<sql id="Base_Where_Clause">
+		<where>
+			<if test="id != null">
+				and id = #{id}
+			</if>
+			<if test="itemId != null and itemId != ''">
+				and item_id = #{itemId}
+			</if>
+			<if test="groupId != null and groupId != ''">
+				and group_id = #{groupId}
+			</if>
+			<if test="value != null and value != ''">
+				and value = #{value}
+			</if>
+			<if test="regionCode != null and regionCode != ''">
+				and region_code = #{regionCode}
+			</if>
+			<if test="azCode != null and azCode != ''">
+				and az_code = #{azCode}
+			</if>
+			<if test="description != null and description != ''">
+				and description = #{description}
+			</if>
+			<if test="sort != 0">
+				and sort = #{sort}
+			</if>
+			<if test="enabled != 0">
+				and enabled = #{enabled}
+			</if>
+			<if test="createdTime != null and createdTime != ''">
+				and created_time = #{createdTime}
+			</if>
+			<if test="updatedTime != null and updatedTime != ''">
+				and value = #{updatedTime}
+			</if>
+		</where>
+	</sql>
+
+    <!--排序条件-->
+    <sql id="Base_Order_List">
+        order by sort
+    </sql>
+
+    <!-- 根据bean查询字典项信息列表 -->
+    <select id="getCommonDictItemListByBean" parameterType="com.yangyang.cloud.common.dictionary.bean.CommonDictItem"
+            resultType="com.yangyang.cloud.common.dictionary.vo.CommonDictItemVo">
+        select
+        <include refid="Base_Column_List_Vo" />
+        from common_dict_item
+        <include refid="Base_Where_Clause"/>
+		<include refid="Base_Order_List"/>
+    </select>
+
+	<select id="getCommonDictListByBean" parameterType="com.yangyang.cloud.common.dictionary.bean.CommonDictItem"
+			resultType="com.yangyang.cloud.common.dictionary.vo.CommonDictVo">
+		select
+		item_id code,value name,az_code parentCode
+		from common_dict_item
+		<include refid="Base_Where_Clause"/>
+		<include refid="Base_Order_List"/>
+	</select>
+
+</mapper>

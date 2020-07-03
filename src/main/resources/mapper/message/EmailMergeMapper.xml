@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.yangyang.cloud.messagemanage.mapper.EmailMergeMapper">
+    <insert id="addEmail" parameterType="com.yangyang.cloud.messagemanage.bean.EmailMergeBean" >
+        INSERT  INTO  email_merge_send(id,message_type_id,email,subject,content,hasAttachment,priority,created_time,status
+        <if test="attachmentId !=null">,attachment_id</if>)
+         VALUES
+         (#{id},#{messageTypeId},#{email},#{subject},#{content},#{hasAttachment},#{priority},#{createdTime},#{status}
+        <if test="attachmentId !=null">,#{attachmentId}</if>)
+    </insert>
+
+    <select id="queryEmailList" resultType="com.yangyang.cloud.messagemanage.bean.EmailMergeBean">
+        SELECT  email,subject,content,hasAttachment,priority,status
+        FROM email_merge_send  WHERE message_type_id =#{emailMergeId}  and status='N'
+    </select>
+
+
+
+</mapper>

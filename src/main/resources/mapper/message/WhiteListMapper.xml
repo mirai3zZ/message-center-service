@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yangyang.cloud.message.mapper.WhiteListMapper">
+
+
+    <!--<select id="queryWhiteTypeList" resultType="java.util.Map">-->
+      <!--select white.scope scope,type.message_type_id messageTypeId-->
+      <!--from operation_message_user_white  white-->
+      <!--left join operation_message_type_user_white  type-->
+      <!--on white.user_id=type.user_white_id-->
+      <!--where (white.mobile=#{mobile} or white.email=#{email}) and white.user_id=#{userId} and white.enable='1'-->
+    <!--</select>-->
+
+    <select id="queryWhiteTypesByUserId" resultType="java.util.Map">
+      select white.scope scope,type.message_type_id messageTypeId
+      from operation_message_user_white  white
+      left join operation_message_type_user_white  type
+      on white.user_id=type.user_white_id
+      <where>
+          white.user_id=#{userId}  and white.enable='1'
+          <if test="email!=null">
+              and white.email =#{email}
+          </if>
+          <if test="mobile!=null">
+              and white.mobile =#{mobile}
+          </if>
+      </where>
+    </select>
+
+</mapper>

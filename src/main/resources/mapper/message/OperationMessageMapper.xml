@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.yangyang.cloud.message.mapper.OperationMessageMapper">
+	<select id="getList" resultType="com.yangyang.cloud.message.bean.OperationMessageEntity">
+		select *
+			from operation_user_message
+			where 1=1
+				<if test="messageTemplateType != null and messageTemplateType != ''">
+					and message_template_type=#{messageTemplateType}
+				</if>
+				<if test="deleteFlag != null and deleteFlag != ''">
+					and delete_flag=#{deleteFlag}
+				</if>
+				<if test="readStatus != null and readStatus != ''">
+					and read_status=#{readStatus}
+				</if>
+				<if test="receiverId != null and receiverId != ''">
+					and receiver_id=#{receiverId}
+				</if>
+	</select>
+	<select id="getEmailFailedReason" parameterType="java.lang.String" resultType="java.lang.String">
+		select sms_failed_reason from common_user_message where
+		sender_email = #{senderEmail}  and group_send= 'E'
+		order by send_time DESC limit 1
+	</select>
+
+	<select id="getSuccessEmail" parameterType="java.lang.String" resultType="java.lang.Integer">
+		select count(1) from common_user_message where group_send='E' and status='N' and sender_email = #{senderEmail}
+		order by send_time DESC
+	</select>
+</mapper>

@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: org.keycloak:keycloak-authz-client:4.6.0.Final">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.keycloak/keycloak-authz-client/4.6.0.Final/33a191842c1250c7f359e49df06aa1721c5a94ef/keycloak-authz-client-4.6.0.Final.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.keycloak/keycloak-authz-client/4.6.0.Final/f35e2ccf96edbe247bb9ca2b9ba50fa3cf0f69c2/keycloak-authz-client-4.6.0.Final-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.yangyang.cloud.common.CommonConfig">
+
+    <select id="getConfig" resultType="com.yangyang.cloud.common.bean.CommonConfigBean">
+        SELECT * FROM  common_config
+        where name = #{name}
+        and group_name = #{groupName}
+        and use_status ='Y'
+    </select>
+
+    <select id="getConfigList" resultType="com.yangyang.cloud.common.bean.CommonConfigBean">
+        SELECT *
+        from common_config
+        and  group_name =#{groupName}
+        and  use_status ='Y'
+    </select>
+
+    <update id="updateConfigValueById">
+        update common_config set value =#{value } where id =#{id}
+    </update>
+
+</mapper>

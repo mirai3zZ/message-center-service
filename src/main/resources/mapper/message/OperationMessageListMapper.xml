@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yangyang.cloud.message.mapper.OperationMessageListMapper">
+    <select id="getOperationMessageList" resultType="com.yangyang.cloud.message.bean.OperationMessageList">
+        SELECT `id`,`created_time`,`created_user_id`,`mail_content`, `mail_title`,`email_content`,`email_subject`,`sms_content`,
+           `message_main_type`, `message_main_name`, `message_type`, `message_type_name`, `receiver_id`,
+          `send_email_message`, `send_mail_message`, `send_sms_message`, `send_by_hand`, `send_target`, `status`
+        FROM
+       `operation_message_list`
+       where
+          `receiver_id` = 'all' and mail_title is not null and status = 'SUCCESS'
+    </select>
+</mapper>

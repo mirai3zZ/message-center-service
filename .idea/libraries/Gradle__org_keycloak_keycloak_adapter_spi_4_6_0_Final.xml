@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: org.keycloak:keycloak-adapter-spi:4.6.0.Final">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.keycloak/keycloak-adapter-spi/4.6.0.Final/6a75b10034c7b2da2332e252aa6665db9d162cea/keycloak-adapter-spi-4.6.0.Final.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.keycloak/keycloak-adapter-spi/4.6.0.Final/adc3b23cb001ed4076447bdba7c6270bfcac69a8/keycloak-adapter-spi-4.6.0.Final-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.yangyang.cloud.messagemanage.mapper.MessageManageMapper">
+    <select id="getMessageTypeList" resultType="com.yangyang.cloud.messagemanage.bean.MessageTypeBean">
+        select type.id,type.type_name,type.type_level,type.status,type.parent_id as main_type_id,type.parent_name as
+        main_type_name,template.template_content_mail,type.using_object_type,template.id as
+        template_id,template.template_title_mail,template.type_code,
+        IFNULL(type.updated_user_id,type.created_user_id) updatedUserId,
+        IFNULL(type.updated_user_name,type.created_user_name) updatedUserName,
+        IFNULL(type.updated_time,type.created_time) updateTime,
+        type.send_mail_default_setting,type.send_mobile_default_setting,type.send_email_default_setting,
+        type.explain_option,type.explain_text,type.target_role,type.merged_option,type.merged_period,
+        template.template_content_email,template.template_title_email,template.template_content_sms from
+        operation_message_type type left join
+        operation_message_template
+        template on template.message_type_id = type.id where type.status = 'Y' AND type.type_level = 1
+        <if test="messageMainType!='all'">
+            and type.parent_id=#{messageMainType}
+        </if>
+        <if test="messageTypeId!='' and messageTypeId!=null">
+            and type.id=#{messageTypeId}
+        </if>
+        ORDER BY type.parent_id
+    </select>
+
+    <insert id="messageTypeAdd" parameterType="com.yangyang.cloud.message.bean.OperationMessageTypeEntity">
+        insert into operation_message_type (id, created_time, created_user_id, created_user_name, updated_time,
+        updated_user_id,
+        updated_user_name, type_name, type_level, parent_id, send_mail_default_setting, send_mobile_default_setting,
+        status, send_email_default_setting, parent_name, using_object_type, can_edit)
+        values (#{id}, now(), #{createdUserId}, #{createdUserName}, now(), #{updatedUserId}, #{updatedUserName},
+        #{typeName},
+        #{typeLevel}, #{parentId}, #{sendMailDefaultSetting}, #{sendMobileDefaultSetting}, #{status},
+        #{sendEmailDefaultSetting},
+        #{parentName}, #{usingObjectType}, #{canEdit})
+    </insert>
+
+    <insert id="messageTypeTemplateAdd" parameterType="com.yangyang.cloud.messagemanage.bean.MessageTemplateBean">
+        insert into operation_message_template
+        (id,type_code,created_time,created_user_id,created_user_name,message_type_id,message_type_name)
+        values(#{id},#{typeCode},now(),#{createdUserId},#{createdUserName},#{messageTypeId},#{messageTypeName})
+    </insert>
+
+    <update id="messageTypeTemplateUpdate">
+        update operation_message_template set updated_time=now(),updated_user_id=#{userId}
+        <choose>
+            <when test="messageType=='sms'">
+                ,template_content_sms=#{templateContent}
+            </when>
+            <when test="messageType=='mail'">
+                ,template_content_mail=#{templateContent},template_title_mail=#{templateTitle}
+            </when>
+            <when test="messageType=='email'">
+                ,template_content_email=#{templateContent},template_title_email=#{templateTitle}
+            </when>
+        </choose>
+        where message_type_id=#{typeId}
+    </update>
+    <select id="getMessageTemplateByCode" resultType="com.yangyang.cloud.messagemanage.bean.MessageTemplateBean">
+        select
+        id,message_type_id,message_type_name,template_content_sms,template_content_email,template_title_email,template_content_mail,template_title_mail
+        from operation_message_template where type_code=#{templateId}  and status='Y'
+    </select>
+    <select id="getMessageSettingByMsgType" resultType="com.yangyang.cloud.message.bean.UserMessageSettingEntity">
+        select
+        t1.id,t1.message_type_id,t1.message_type_name,t1.main_type_id,t1.main_type_name,t1.send_mail_setting,t1.send_email_setting,t1.send_mobile_setting,t1.can_edit,t1.created_user_id,t2.priority
+        from user_message_setting t1 left join operation_message_type t2 ON t1.message_type_id = t2.id where t1.created_user_id=#{userId} and t1.message_type_id=#{messageTypeId} and
+        t1.status='Y'
+    </select>
+    <select id="getMessageSettingByMsgTypes" resultType="com.yangyang.cloud.message.bean.UserMessageSettingEntity">
+        select
+        id,message_type_id,message_type_name,main_type_id,main_type_name,send_mail_setting,send_email_setting,send_mobile_setting,can_edit,created_user_id
+        from user_message_setting where created_user_id=#{userId} and message_type_id in
+        <foreach collection="messageTypeIds" close=")" open="(" separator="," item="item">
+            #{item.messageType}
+        </foreach>
+        and status='Y'
+    </select>
+    <select id="getMessageReceiversBySettingId"
+            resultType="com.yangyang.cloud.message.bean.UserMessageReceiverEntity">
+        select
+        receiver.id,receiver.receiver_name,receiver.receiver_email,receiver.receiver_mobile,receiver.email_check_pass,receiver.mobile_check_pass
+        from user_message_receiver_setting setting,user_message_receiver receiver
+        where setting.receiver_id = receiver.id and
+        setting.message_setting_id=#{messageSettingId} and receiver.status='Y'and setting.status='Y'
+    </select>
+    <insert id="saveMessageRecords" parameterType="com.yangyang.cloud.message.bean.OperationMessageEntity">
+        insert into operation_user_message(id,created_time,title,content,message_template_type,status,receiver_id,
+        message_main_type,message_main_name,message_type,message_type_name,receiver_contact,receiver_login_id,message_id,common_user_message_id,send_user_id,send_user_name,receiver)
+        values(#{id},#{createdTime},#{title},#{content},#{messageTemplateType},#{status},#{receiverId},#{messageMainType},#{messageMainName},#{messageType},#{messageTypeName},#{receiverContact},#{receiverLoginId},#{messageId},#{commonUserMessageId},#{sendUserId},#{sendUserName},#{receiver})
+    </insert>
+    <select id="queryHistoryMessageForPage" parameterType="String"
+            resultType="com.yangyang.cloud.messagemanage.bean.OperationMessageBean">
+        SELECT
+        a.id,a.send_user_id,a.send_user_name,a.created_time,a.title,a.content,a.message_template_type,a.receiver_id,
+        a.receiver_contact,a.receiver_login_id,a.message_main_type,a.message_main_name,a.message_type,a.message_type_name,
+        c.sms_failed_reason,c.sms_provider,
+        CASE c.status WHEN 'Y' THEN 'SUCCESS' WHEN 'F' THEN 'FAILURE' WHEN 'N' THEN 'SENDING' ELSE a.`status` END as
+        status FROM
+        operation_user_message a left join common_user_message c on a.common_user_message_id=c.id
+        where 1=1
+        <if test="mainTypeId!='all'">
+            and a.message_main_type = #{mainTypeId}
+        </if>
+        <if test="messageTypeId!=null and messageTypeId!=''">
+            and a.message_type=#{messageTypeId}
+        </if>
+        <if test="title!=null and title!=''">
+            and a.title like CONCAT('%',#{title},'%')
+        </if>
+        <if test="receiver!=null and receiver!=''">
+            and a.receiver_login_id like CONCAT('%',#{receiver},'%')
+        </if>
+        <if test="status!=null and status!=''">
+            and a.status = #{status}
+        </if>
+        <if test="receiverContact!=null and receiverContact!=''">
+            and a.receiver_contact like CONCAT('%',#{receiverContact},'%')
+        </if>
+        <if test="messageByHandId!=null and messageByHandId!=''">
+            and a.message_id = #{messageByHandId}
+        </if>
+        <if test="startTime!=null and startTime!=''">
+            and   <![CDATA[ a.created_time >= #{startTime,jdbcType=DATE}]]>
+        </if>
+        <if test="endTime!=null and endTime!=''">
+            and  <![CDATA[ a.created_time <= #{endTime,jdbcType=DATE}]]>
+        </if>
+        and a.message_template_type = #{messageTemplateType}
+        order by a.created_time desc
+    </select>
+    <select id="getMessageTypeById" resultType="com.yangyang.cloud.messagemanage.bean.MessageTypeBean">
+        select
+        id,type_name,type_level,send_mail_default_setting,send_mobile_default_setting,status,parent_id,send_email_default_setting,parent_name,using_object_type,can_edit,priority,explain_option,explain_text,target_role,merged_option,merged_period,xxl_job_id
+        from operation_message_type where id=#{templateId} and status='Y'
+    </select>
+    <select id="getMessageTypeByIds" resultType="com.yangyang.cloud.messagemanage.bean.MessageTypeBean">
+        select
+        id,type_name,type_level,send_mail_default_setting,send_mobile_default_setting,status,parent_id,send_email_default_setting,parent_name,using_object_type,can_edit
+        from operation_message_type where id in
+        <foreach collection="ids" item="item" separator="," open="(" close=")">
+            #{item.messageType}
+        </foreach>
+        and status='Y'
+    </select>
+    <select id="getUserBean" parameterType="String" resultType="com.yangyang.cloud.message.bean.UserBaseInfoEntity">
+        select mobile,email from user_base_info where id=#{receiverId}
+    </select>
+    <insert id="addMessage" parameterType="java.util.List">
+        INSERT INTO `operation_user_message`
+        (`id`,`send_user_id`,`created_time`,`title`,`content`,`message_template_type`,`status`, `receiver_id`,
+        `message_main_type`,`message_main_name`, `message_type`, `message_type_name`, `receiver_contact`,`message_id`)
+        VALUES
+        <foreach collection="list" close="" open="" separator="," item="item" index="index">
+            (
+            #{item.id},#{item.sendUserId},#{item.createdTime},#{item.title},#{item.content},#{item.messageTemplateType},#{item.status},#{item.receiverId},#{item.messageMainType},
+            #{item.messageMainName},#{item.messageType},#{item.messageTypeName},#{item.receiverContact},#{item.messageId}
+            )
+        </foreach>
+    </insert>
+    <sql id="Base_Column_List">
+        id,created_time,created_user_id,mail_content,mail_title,email_content,email_subject,
+        sms_content,message_main_type,message_main_name,message_type,message_type_name,receiver_id,send_email_message,send_mail_message,send_sms_message,
+        send_by_hand,send_target,status
+    </sql>
+    <insert id="addMessageList" parameterType="com.yangyang.cloud.messagemanage.bean.MessageBean">
+        insert into operation_message_list
+        (<include refid="Base_Column_List"/>)
+        values(#{id},#{createdTime},#{createdUserId},#{mailContent},#{mailTitle},#{emailContent},#{emailSubject},
+        #{smsContent},#{messageMainType},#{messageMainName},#{messageType},#{messageTypeName},#{receiverId},#{sendEmailMessage},#{sendMailMessage},#{sendSmsMessage},
+        #{sendByHand},#{sendTarget},#{status})
+    </insert>
+    <insert id="saveMessageBeanToCommonMsg">
+        insert into common_user_message
+        (id,content,created_time,status,send_error_times,type,sms_failed_reason)
+        values
+        (#{id},#{content},#{createdTime},#{status},#{sendErrorTimes},#{type},#{smsFailedReason})
+    </insert>
+    <update id="updateMessageRecords">
+        update  operation_user_message set common_user_message_id = #{commonMessageId} and status ='SUCCESS'
+        where  message_type = #{messageTypeId}
+    </update>
+</mapper>

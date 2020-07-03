@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: org.keycloak:keycloak-spring-boot-adapter-core:4.6.0.Final">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.keycloak/keycloak-spring-boot-adapter-core/4.6.0.Final/e00e5bb8798f0dd0135a3a0ef0c3ad3c18207d02/keycloak-spring-boot-adapter-core-4.6.0.Final.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.keycloak/keycloak-spring-boot-adapter-core/4.6.0.Final/840b3fa0c5796d0b236f5aea7ae10a1e54d8c4f4/keycloak-spring-boot-adapter-core-4.6.0.Final-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.yangyang.cloud.notice.mapper.NoticeManageMapper">
+    <select id="getNoticeBeansForPage" resultType="com.yangyang.cloud.notice.bean.NoticeBean">
+        select *
+        from operation_notice where 1=1
+        <if test="noticeTypeId!='all'">
+            and notice_type_id=#{noticeTypeId}
+        </if>
+        <if test="startTime!=null and startTime!=''">
+            and created_time <![CDATA[>= ]]> #{startTime}
+        </if>
+        <if test="endTime!=null and endTime!=''">
+            and created_time <![CDATA[<= ]]> #{endTime}
+        </if>
+        <if test="title!=null and title!=''">
+            and notice_title like '%${title}%'
+        </if>
+        <if test="status!=null and status!=''">
+            and status=#{status}
+        </if>
+        order by created_time DESC
+    </select>
+
+    <insert id="save" parameterType="com.yangyang.cloud.notice.vo.AnnounceNoticeVo">
+        insert into operation_notice (id, created_time, notice_title, notice_content, created_user_id,
+        created_user_name, import_level, status,notice_type_id,notice_type_name)
+        values(#{id}, #{createdTime}, #{noticeTitle}, #{noticeContent},
+        #{createdUserId}, #{createdUserName}, #{importLevel},
+        #{status},#{noticeTypeId},#{noticeTypeName})
+    </insert>
+
+    <update id="updateNotice" parameterType="com.yangyang.cloud.notice.bean.NoticeBean">
+        update operation_notice
+			set updated_time=now(), notice_title=#{noticeTitle}, notice_content=#{noticeContent}, updated_user_id=#{updatedUserId},
+					updated_user_name=#{updatedUserName}, status=#{status}, notice_type_id=#{noticeTypeId}, notice_type_name =#{noticeTypeName}
+        	where id=#{id}
+    </update>
+
+</mapper>
